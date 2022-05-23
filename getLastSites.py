@@ -30,11 +30,12 @@ def downloadFile(soupObject, fileDate, path):
     for td in soupObject.findAll("td"):
         i += 1
         if (i == 4):
-            with requests.get(td.a["href"], stream=True) as fileContent:
+            url = td.a["href"]
+            with requests.get(url, stream=True) as fileContent:
                 fileContent.raise_for_status()
                 fileName = path + fileDate.strftime('%Y-%m-%d') + ".zip"
                 with open(fileName, "wb") as file:
-                    print("Downloading " + fileName)
+                    print("Downloading " + url + " at " + fileName)
                     for chunk in fileContent.iter_content(chunk_size=8192):
                         file.write(chunk)
                     print("Finished downloading.")
@@ -60,6 +61,6 @@ for row in table.findAll("tr"):
         i += 1
         if (i == 3):
             dateobject = datetime.strptime(td.text, '%Y-%m-%d').date()
-            if lastUpdate == None or dateobject < lastUpdate:
+            if lastUpdate == None or dateobject > lastUpdate:
                 downloadFile(row, dateobject, sys.argv[1])
 print("Last data aquired.")
