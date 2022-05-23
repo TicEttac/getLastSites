@@ -12,17 +12,14 @@ whoisPage = requests.get("https://www.whoisds.com/newly-registered-domains")
 whoisSoup = BeautifulSoup(whoisPage.content, "lxml")
 dateRegex = re.compile(r'\d{4}-\d{2}-\d{2}.txt')
 
-def getLastUpdate(path):
+def isInCurrentFileList(path, element):
     dirList = os.listdir(path)
-    dateList = []
     for dir in dirList :
         if (dateRegex.search(dir)):
             dateItem = datetime.strptime(dir[:max([idx for idx, x in enumerate(dir) if x == '.'])], '%Y-%m-%d').date()
-            dateList.append(dateItem)
-    if (dateList):
-        return (max(dateList))
-    else:
-        return (None)
+            if (element == dateItem):
+                return True
+    return False
 
 def downloadFile(soupObject, fileDate, path):
     i = 0
@@ -52,7 +49,6 @@ if (len(sys.argv) < 2):
     print("Wrong arguments: need to add path to work folder")
     exit()
 
-lastUpdate = getLastUpdate(sys.argv[1])
 table = whoisSoup.find(lambda tag: tag.name=='table')
 
 for row in table.findAll("tr"):
@@ -61,6 +57,6 @@ for row in table.findAll("tr"):
         i += 1
         if (i == 3):
             dateobject = datetime.strptime(td.text, '%Y-%m-%d').date()
-            if lastUpdate == None or dateobject > lastUpdate:
+            if isInCurrentFileList(sys.argv[1], dateobject) == False:
                 downloadFile(row, dateobject, sys.argv[1])
 print("Last data aquired.")
